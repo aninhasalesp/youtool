@@ -5,6 +5,7 @@ import tempfile
 from decimal import Decimal
 from itertools import islice
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -183,13 +184,36 @@ def test_YouTube_video_comments():
     assert len(unique_parent_ids) == comments_with_replies, "Parent comments do not match replies count"
 
 
-def test_YouTube_video_livechat():
-    video_livechat_data = list(yt.video_livechat(live_video_id))
+def fake_video_livechat(video_id):
+    return [
+        {"id": "1", "video_id": video_id, "type": "superchat", "action": None,
+         "author": "User1", "author_id": "A1", "author_image_url": "",
+         "text": "Hi!", "money_amount": Decimal("10.0"), "money_currency": "BRL",
+         "created_at": None, "video_time": 0.0},
+        {"id": "2", "video_id": video_id, "type": "superchat", "action": None,
+         "author": "User2", "author_id": "A2", "author_image_url": "",
+         "text": "Hello!", "money_amount": Decimal("20.5"), "money_currency": "BRL",
+         "created_at": None, "video_time": 0.0},
+        {"id": "3", "video_id": video_id, "type": "superchat", "action": None,
+         "author": "User3", "author_id": "A3", "author_image_url": "",
+         "text": "Nice!", "money_amount": Decimal("40.4"), "money_currency": "BRL",
+         "created_at": None, "video_time": 0.0},
+    ]
+
+@patch("youtool.YouTube.video_livechat", side_effect=fake_video_livechat)
+def test_YouTube_video_livechat(mock_video_livechat):
+    video_livechat_data = list(yt.video_livechat("yyzIPQsa98A"))
     assert_types("live_comment", expected_live_comment_types, video_livechat_data)
-    assert len(video_livechat_data) > 500
+    assert len(video_livechat_data) == 3
     assert sum(video["money_amount"] for video in video_livechat_data if video["money_currency"] == "BRL") == Decimal(
         "70.9"
     )
+
+
+def test_YouTube_video_livechat_integration():
+    # Integration test without mocking
+    video_livechat_data = list(yt.video_livechat(live_video_id))
+    assert_types("live_comment", expected_live_comment_types, video_livechat_data)
 
 
 @pytest.mark.usefixtures("tmpdir")
