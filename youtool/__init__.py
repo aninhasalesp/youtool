@@ -11,7 +11,7 @@ from urllib.parse import urljoin, urlparse
 import isodate  # TODO: implement duration parser to remove dependency?
 import requests
 
-REGEXP_CHANNEL_ID = re.compile('"externalId":"([^"]+)"')
+REGEXP_CHANNEL_ID = re.compile('"channelId":"([^"]+)"')
 REGEXP_LOCATION_RADIUS = re.compile(r"^[0-9.]+(?:m|km|ft|mi)$")
 REGEXP_NAIVE_DATETIME = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}:[0-9]{2}$")
 REGEXP_DATETIME_MILLIS = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+")
