@@ -1,19 +1,19 @@
-import csv
 import argparse
-
-from typing import List, Dict, Any, Optional
+import csv
+from datetime import datetime
 from io import StringIO
 from pathlib import Path
-from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 
 class Command:
     """A base class for commands to inherit from, following a specific structure.
-    
+
     Attributes:
         name (str): The name of the command.
         arguments (List[Dict[str, Any]]): A list of dictionaries, each representing an argument for the command.
     """
+
     name: str
     arguments: List[Dict[str, Any]]
 
@@ -83,13 +83,13 @@ class Command:
         if not file_path.is_file():
             raise FileNotFoundError(f"Invalid file path: {file_path}")
 
-        with file_path.open('r', newline='') as csv_file:
+        with file_path.open("r", newline="") as csv_file:
             reader = csv.DictReader(csv_file)
             fieldnames = reader.fieldnames
 
             if fieldnames is None:
                 raise ValueError("Fieldnames is None")
-            
+
             if data_column_name not in fieldnames:
                 raise Exception(f"Column {data_column_name} not found on {file_path}")
             for row in reader:
@@ -118,7 +118,7 @@ class Command:
                 timestamp = datetime.now().strftime("%M%S%f")
                 output_file_path = output_path / f"{command_name}_{timestamp}.csv"
 
-        with (Path(output_file_path).open('w', newline='') if output_file_path else StringIO()) as csv_file:
+        with Path(output_file_path).open("w", newline="") if output_file_path else StringIO() as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=list(data[0].keys()) if data else [])
             writer.writeheader()
             writer.writerows(data)
