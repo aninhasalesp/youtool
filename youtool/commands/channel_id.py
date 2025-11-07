@@ -35,13 +35,16 @@ class ChannelId(Command):
     def execute(cls, **kwargs) -> str:
         """Execute the channel-id command to fetch YouTube channel IDs from URLs and save them to a CSV file.
 
-        This method retrieves YouTube channel IDs from a list of provided URLs or from a file containing URLs.
-        It then saves these channel IDs to a CSV file if an output file path is specified.
+        This command retrieves YouTube channel IDs from one of two possible inputs:
+            - a list of YouTube channel URLs (`--urls`), or
+            - a CSV file containing those URLs (`--urls-file-path`).
 
-        Args:
-            urls (list[str], optional): A list of YouTube channel URLs. Either this or urls_file_path must be provided.
-            urls_file_path (str, optional): Path to a CSV file containing YouTube channel URLs.
-                                            Requires url_column_name to specify the column with URLs.
+            Args:
+                urls (list[str]): List of YouTube channel URLs.
+                    Mutually exclusive with `urls_file_path`.
+            urls_file_path (str): Path to a CSV file containing YouTube channel URLs.
+                    Mutually exclusive with `urls`.
+                    Requires url_column_name to specify the column with URLs.
             output_file_path (str, optional): Path to the output CSV file where channel IDs will be saved.
                                               If not provided, the result will be returned as a string.
             api_key (str): The API key to authenticate with the YouTube Data API.
@@ -55,7 +58,7 @@ class ChannelId(Command):
                  include the path to the generated CSV file. Otherwise, it will return the result as a string.
 
         Raises:
-            Exception: If neither urls nor urls_file_path is provided.
+            ValueError: If neither `urls` nor `urls_file_path` is provided, or if both are provided at the same time.
         """
         urls = kwargs.get("urls")
         urls_file_path = kwargs.get("urls_file_path")
