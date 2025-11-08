@@ -129,9 +129,11 @@ class ChannelInfo(Command):
 
         youtube = YouTube([api_key], disable_ipv6=True)
 
-        channels_ids = [youtube.channel_id_from_url(url) for url in (urls or []) if url] + [
-            youtube.channel_id_from_username(username) for username in (usernames or []) if username
-        ] + (ids or [])
+        channels_ids = (
+            [youtube.channel_id_from_url(url) for url in (urls or []) if url]
+            + [youtube.channel_id_from_username(username) for username in (usernames or []) if username]
+            + (ids or [])
+        )
         channel_ids = list(set([channel_id for channel_id in channels_ids if channel_id]))
 
         return cls.data_to_csv(
