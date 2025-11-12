@@ -4,6 +4,7 @@ from datetime import datetime
 from io import StringIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from urllib.parse import parse_qs, urlparse
 
 
 class Command:
@@ -16,6 +17,20 @@ class Command:
 
     name: str
     arguments: List[Dict[str, Any]]
+
+    @staticmethod
+    def video_id_from_url(video_url: str) -> Optional[str]:
+        """Extracts the video ID from a YouTube URL.
+
+        Args:
+            url (str): The YouTube video URL.
+
+        Returns:
+            Optional[str]: The extracted video ID, or None if not found.
+        """
+        parsed_url = urlparse(video_url)
+        parsed_url_query = dict(parse_qs(parsed_url.query))
+        return parsed_url_query.get("v")
 
     @classmethod
     def generate_parser(cls, subparsers: argparse._SubParsersAction):
@@ -52,8 +67,29 @@ class Command:
                 parser.add_argument(argument_name, **argument_copy)
         parser.set_defaults(func=cls.execute)
 
+    @staticmethod
+    def filter_fields(video_info: Dict, info_columns: Optional[List] = None):
+        """Filters the fields of a dictionary containing video information based on
+        specified columns.
+
+        Args:
+            video_info (Dict): A dictionary containing video information.
+            info_columns (Optional[List], optional): A list specifying which fields
+                to include in the filtered output. If None, returns the entire
+                video_info dictionary. Defaults to None.
+
+        Returns:
+            Dict: A dictionary containing only the fields specified in info_columns
+                (if provided) or the entire video_info dictionary if info_columns is None.
+        """
+        return (
+            {field: value for field, value in video_info.items() if field in info_columns}
+            if info_columns
+            else video_info
+        )
+
     @classmethod
-    def execute(cls, **kwargs) -> str:  # noqa: D417
+    def execute(cls, **kwargs) -> str:
         """Executes the command.
 
         This method should be overridden by subclasses to define the command's behavior.
