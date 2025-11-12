@@ -79,10 +79,10 @@ class ChannelInfo(Command):
             urls (list[str], optional): A list of YouTube channel URLs. If not provided, `urls_file_path` must be specified.
             usernames (list[str], optional): A list of YouTube channel usernames. If not provided, `usernames_file_path` must be specified.
             ids (list[str], optional): A list of YouTube channel IDs. If not provided, `ids_file_path` must be specified.
-            urls_file_path (str, optional): Path to a CSV file containing YouTube channel URLs.
-            usernames_file_path (str, optional): Path to a CSV file containing YouTube channel usernames.
-            output_file_path (str, optional): Path to the output CSV file where channel information will be saved.
-            ids_file_path (str, optional): Path to a CSV file containing YouTube channel IDs.
+            urls_file_path (Path, optional): Path to a CSV file containing YouTube channel URLs.
+            usernames_file_path (Path, optional): Path to a CSV file containing YouTube channel usernames.
+            output_file_path (Path, optional): Path to the output CSV file where channel information will be saved.
+            ids_file_path (Path, optional): Path to a CSV file containing YouTube channel IDs.
             api_key (str): The API key to authenticate with the YouTube Data API.
             url_column_name (str, optional): The name of the column in the `urls_file_path` CSV file that contains the URLs.
                                             Default is "channel_url".
@@ -99,13 +99,13 @@ class ChannelInfo(Command):
             Exception: If neither `urls`, `usernames`, `urls_file_path` nor `usernames_file_path` is provided.
         """
 
-        urls = kwargs.get("urls")
-        usernames = kwargs.get("usernames")
-        ids = kwargs.get("ids")
+        urls = kwargs.get("urls") or []
+        usernames = kwargs.get("usernames") or []
+        ids = kwargs.get("ids") or []
         urls_file_path = kwargs.get("urls_file_path")
         usernames_file_path = kwargs.get("usernames_file_path")
         output_file_path = kwargs.get("output_file_path")
-        id_file_path = kwargs.get("ids_file_path")
+        ids_file_path = kwargs.get("ids_file_path")
         api_key = kwargs.get("api_key")
 
         url_column_name = kwargs.get("url_column_name") or ChannelInfo.URL_COLUMN_NAME
@@ -117,15 +117,15 @@ class ChannelInfo(Command):
             [column.strip() for column in info_columns.split(",")] if info_columns else ChannelInfo.INFO_COLUMNS
         )
 
-        if urls_file_path and not urls:
-            urls = ChannelInfo.data_from_csv(urls_file_path, url_column_name)
-        if usernames_file_path and not usernames:
-            usernames = ChannelInfo.data_from_csv(usernames_file_path, username_column_name)
-        if id_file_path and not ids:
-            ids = ChannelInfo.data_from_csv(id_file_path, id_column_name)
+        if urls_file_path:
+            urls += ChannelInfo.data_from_csv(urls_file_path, url_column_name)
+        if usernames_file_path:
+            usernames += ChannelInfo.data_from_csv(usernames_file_path, username_column_name)
+        if ids_file_path:
+            ids += ChannelInfo.data_from_csv(ids_file_path, id_column_name)
 
-        if not urls and not usernames:
-            raise Exception("Either 'urls' or 'usernames' must be provided for the channel-info command")
+        if not urls and not usernames and not ids:
+            raise Exception("Either 'urls', 'usernames', or 'ids' must be provided for the channel-info command")
 
         youtube = YouTube([api_key], disable_ipv6=True)
 
@@ -135,11 +135,11 @@ class ChannelInfo(Command):
             + (ids or [])
         )
         channel_ids = list(set([channel_id for channel_id in channels_ids if channel_id]))
-
         return cls.data_to_csv(
             data=[
                 ChannelInfo.filter_fields(channel_info, info_columns)
                 for channel_info in (youtube.channels_infos(channel_ids) or [])
+                if channel_info
             ],
             output_file_path=output_file_path,
         )
