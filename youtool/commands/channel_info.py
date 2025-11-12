@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Self
+from typing import List, Self
 
 from youtool import YouTube
 
@@ -48,27 +48,6 @@ class ChannelInfo(Command):
         "subscriber_count",
         "video_count",
     ]
-
-    @staticmethod
-    def filter_fields(channel_info: Dict, info_columns: Optional[List] = None):
-        """Filters the fields of a dictionary containing channel information based on
-        specified columns.
-
-        Args:
-            channel_info (Dict): A dictionary containing channel information.
-            info_columns (Optional[List], optional): A list specifying which fields
-                to include in the filtered output. If None, returns the entire
-                channel_info dictionary. Defaults to None.
-
-        Returns:
-            Dict: A dictionary containing only the fields specified in info_columns
-                (if provided) or the entire channel_info dictionary if info_columns is None.
-        """
-        return (
-            {field: value for field, value in channel_info.items() if field in info_columns}
-            if info_columns
-            else channel_info
-        )
 
     @classmethod
     def execute(cls: Self, **kwargs) -> str:
