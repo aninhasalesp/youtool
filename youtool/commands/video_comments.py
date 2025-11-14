@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from typing import List, Self
 
 from youtool import YouTube
@@ -13,7 +15,7 @@ class VideoComments(Command):
     name = "video-comments"
     arguments = [
         {"name": "--ids", "type": str, "help": "Video ID", "required": True},
-        {"name": "--output-file-path", "type": str, "help": "Output CSV file path"},
+        {"name": "--output-file-path", "type": Path, "help": "Output CSV file path"},
     ]
 
     COMMENT_COLUMNS: List[str] = ["comment_id", "author_display_name", "text_display", "like_count", "published_at"]
@@ -27,7 +29,7 @@ class VideoComments(Command):
 
         Args:
             ids (str): The ID of the YouTube video.
-            output_file_path (str): Path to the output CSV file where comments will be saved.
+            output_file_path (Path): Path to the output CSV file where comments will be saved.
             api_key (str): The API key to authenticate with the YouTube Data API.
 
         Returns:
