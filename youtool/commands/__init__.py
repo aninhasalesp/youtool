@@ -7,8 +7,17 @@ from .video_comments import VideoComments
 from .video_info import VideoInfo
 from .video_livechat import VideoLiveChat
 from .video_search import VideoSearch
+from .video_transcription import VideoTranscription
 
-COMMANDS: List[Command] = [ChannelId, ChannelInfo, VideoInfo, VideoSearch, VideoComments, VideoLiveChat]
+COMMANDS: List[Command] = [
+    ChannelId,
+    ChannelInfo,
+    VideoInfo,
+    VideoSearch,
+    VideoComments,
+    VideoLiveChat,
+    VideoTranscription,
+]
 
 __all__ = [
     "Command",
@@ -19,4 +28,5 @@ __all__ = [
     "VideoSearch",
     "VideoComments",
     "VideoLiveChat",
+    "VideoTranscription",
 ]
