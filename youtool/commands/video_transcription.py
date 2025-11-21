@@ -18,7 +18,12 @@ class VideoTranscription(Command):
             "help": "Channels urls csv file path",
             "mutually_exclusive_group": "input_source",
         },
-        {"name": "--ids-file-path", "type": Path, "help": "Channel IDs CSV file path", "mutually_exclusive_group": "input_source"},
+        {
+            "name": "--ids-file-path",
+            "type": Path,
+            "help": "Channel IDs CSV file path",
+            "mutually_exclusive_group": "input_source",
+        },
         {"name": "--output-dir", "type": Path, "help": "Output directory to save transcriptions", "required": True},
         {"name": "--language-code", "type": str, "help": "Language code for transcription", "required": True},
         {"name": "--url_column_name", "type": str, "help": "URL column name on CSV input files"},
