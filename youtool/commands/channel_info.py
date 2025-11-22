@@ -15,25 +15,32 @@ class ChannelInfo(Command):
     arguments = [
         {
             "name": "--urls",
+            "short": "-u",
             "type": str,
             "help": "Channel URLs",
             "nargs": "*",
             "mutually_exclusive_group": "input_source",
         },
-        {"name": "--usernames", "type": str, "help": "Channel usernames", "nargs": "*"},
-        {"name": "--ids", "type": str, "help": "Channel IDs", "nargs": "*"},
+        {"name": "--usernames", "short": "-n", "type": str, "help": "Channel usernames", "nargs": "*"},
+        {"name": "--ids", "short": "-i", "type": str, "help": "Channel IDs", "nargs": "*"},
         {
             "name": "--urls-file-path",
+            "short": "-f",
             "type": Path,
             "help": "Channel URLs CSV file path",
             "mutually_exclusive_group": "input_source",
         },
-        {"name": "--usernames-file-path", "type": Path, "help": "Channel usernames CSV file path"},
-        {"name": "--ids-file-path", "type": Path, "help": "Channel IDs CSV file path"},
-        {"name": "--output-file-path", "type": Path, "help": "Output CSV file path"},
-        {"name": "--url-column-name", "type": str, "help": "URL column name on CSV input files"},
-        {"name": "--username-column-name", "type": str, "help": "Username column name on CSV input files"},
-        {"name": "--id-column-name", "type": str, "help": "ID column name on CSV input files"},
+        {"name": "--usernames-file-path", "short": "-m", "type": Path, "help": "Channel usernames CSV file path"},
+        {"name": "--ids-file-path", "short": "-d", "type": Path, "help": "Channel IDs CSV file path"},
+        {"name": "--output-file-path", "short": "-o", "type": Path, "help": "Output CSV file path"},
+        {"name": "--url-column-name", "short": "-c", "type": str, "help": "URL column name on CSV input files"},
+        {
+            "name": "--username-column-name",
+            "short": "-s",
+            "type": str,
+            "help": "Username column name on CSV input files",
+        },
+        {"name": "--id-column-name", "short": "-a", "type": str, "help": "ID column name on CSV input files"},
     ]
 
     URL_COLUMN_NAME: str = "channel_url"
