@@ -12,9 +12,9 @@ class VideoLiveChat(Command):
 
     name = "video-livechat"
     arguments = [
-        {"name": "--ids", "type": str, "help": "Video ID", "required": True},
-        {"name": "--output-file-path", "type": Path, "help": "Output CSV file path"},
-        {"name": "--expand-emojis", "action": "store_true", "help": "Expand emojis in chat messages"},
+        {"name": "--ids", "short": "-i", "type": str, "help": "Video ID", "required": True},
+        {"name": "--output-file-path", "short": "-o", "type": Path, "help": "Output CSV file path"},
+        {"name": "--expand-emojis", "short": "-e", "action": "store_true", "help": "Expand emojis in chat messages"},
     ]
 
     CHAT_COLUMNS: List[str] = [
