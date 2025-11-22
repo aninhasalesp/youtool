@@ -20,8 +20,15 @@ def main():
         argparse.ArgumentError: If there is an error during the execution of the command.
     """
     parser = argparse.ArgumentParser(description="CLI Tool for managing YouTube videos add playlists")
-    parser.add_argument("--api-key", type=str, help="YouTube API Key", dest="api_key")
-    parser.add_argument("--debug", help="Debug mode", dest="debug", default=False, action="store_true")
+    parser.add_argument(
+        "-k",
+        "--api-key",
+        type=str,
+        help="YouTube API key (defaults to environment variable YOUTUBE_API_KEY)",
+        default=os.getenv("YOUTUBE_API_KEY"),
+        dest="api_key",
+    )
+    parser.add_argument("-d", "--debug", help="Debug mode", dest="debug", default=False, action="store_true")
 
     subparsers = parser.add_subparsers(required=True, dest="command", title="Command", help="Command to be executed")
 
