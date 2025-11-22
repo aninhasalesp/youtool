@@ -519,10 +519,11 @@ class YouTube:
                 yield parse_comment_data(reply)
 
     def video_livechat(self, video_id: str, expand_emojis=True):
-        from chat_downloader import ChatDownloader
         from chat_downloader.errors import ChatDisabled, LoginRequired, NoChatReplay
 
-        downloader = ChatDownloader()
+        from youtool.chat_downloader import YouToolChatDownloader
+
+        downloader = YouToolChatDownloader()
         video_url = f"https://youtube.com/watch?v={video_id}"
         try:
             live = downloader.get_chat(video_url, message_groups=["messages", "superchat"])
