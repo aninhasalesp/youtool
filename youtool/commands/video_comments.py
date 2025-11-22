@@ -13,8 +13,8 @@ class VideoComments(Command):
 
     name = "video-comments"
     arguments = [
-        {"name": "--ids", "type": str, "help": "Video ID", "required": True},
-        {"name": "--output-file-path", "type": Path, "help": "Output CSV file path"},
+        {"name": "--ids", "short": "-i", "type": str, "help": "Video ID", "required": True},
+        {"name": "--output-file-path", "short": "-o", "type": Path, "help": "Output CSV file path"},
     ]
 
     COMMENT_COLUMNS: List[str] = ["comment_id", "author_display_name", "text_display", "like_count", "published_at"]
