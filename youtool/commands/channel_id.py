@@ -12,6 +12,7 @@ class ChannelId(Command):
     arguments = [
         {
             "name": "--urls",
+            "short": "-u",
             "type": str,
             "help": "Channels urls",
             "nargs": "*",
@@ -19,13 +20,14 @@ class ChannelId(Command):
         },
         {
             "name": "--urls-file-path",
+            "short": "-f",
             "type": Path,
             "help": "Channels urls csv file path",
             "mutually_exclusive_group": "input_source",
         },
-        {"name": "--output-file-path", "type": Path, "help": "Output csv file path"},
-        {"name": "--url-column-name", "type": str, "help": "URL column name on csv input files"},
-        {"name": "--id-column-name", "type": str, "help": "Channel ID column name on csv output files"},
+        {"name": "--output-file-path", "short": "-o", "type": Path, "help": "Output csv file path"},
+        {"name": "--url-column-name", "short": "-c", "type": str, "help": "URL column name on csv input files"},
+        {"name": "--id-column-name", "short": "-i", "type": str, "help": "Channel ID column name on csv output files"},
     ]
 
     URL_COLUMN_NAME: str = "channel_url"
