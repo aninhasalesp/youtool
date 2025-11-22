@@ -14,24 +14,45 @@ class VideoSearch(Command):
 
     name = "video-search"
     arguments = [
-        {"name": "--ids", "type": str, "help": "Video IDs", "nargs": "*", "mutually_exclusive_group": "input_source"},
-        {"name": "--urls", "type": str, "help": "Video URLs", "nargs": "*", "mutually_exclusive_group": "input_source"},
+        {
+            "name": "--ids",
+            "short": "-i",
+            "type": str,
+            "help": "Video IDs",
+            "nargs": "*",
+            "mutually_exclusive_group": "input_source",
+        },
+        {
+            "name": "--urls",
+            "short": "-u",
+            "type": str,
+            "help": "Video URLs",
+            "nargs": "*",
+            "mutually_exclusive_group": "input_source",
+        },
         {
             "name": "--ids-file-path",
+            "short": "-d",
             "type": Path,
             "help": "Channel IDs CSV file path",
             "mutually_exclusive_group": "input_source",
         },
         {
             "name": "--urls-file-path",
+            "short": "-f",
             "type": Path,
             "help": "Channels urls csv file path",
             "mutually_exclusive_group": "input_source",
         },
-        {"name": "--output-file-path", "type": Path, "help": "Output CSV file path"},
-        {"name": "--url_column_name", "type": str, "help": "URL column name on csv input files"},
-        {"name": "--id_column_name", "type": str, "help": "Channel ID column name on csv output files"},
-        {"name": "--info_columns", "type": str, "help": "Comma-separated list of columns to include in the output CSV"},
+        {"name": "--output-file-path", "short": "-o", "type": Path, "help": "Output CSV file path"},
+        {"name": "--url_column_name", "short": "-c", "type": str, "help": "URL column name on csv input files"},
+        {"name": "--id_column_name", "short": "-a", "type": str, "help": "Channel ID column name on csv output files"},
+        {
+            "name": "--info_columns",
+            "short": "-l",
+            "type": str,
+            "help": "Comma-separated list of columns to include in the output CSV",
+        },
         {"name": "--full-info", "action": "store_true", "help": "Option to get full video info", "default": False},
     ]
 
