@@ -56,15 +56,15 @@ class Command:
 
         for argument in cls.arguments:
             argument_copy = {**argument}
-            argument_name = argument_copy.pop("name")
+            argument_names = [name for name in [argument_copy.pop("name"), argument_copy.pop("short", None)] if name]
 
             group_name = argument_copy.pop("mutually_exclusive_group", None)
             if group_name:
                 if group_name not in groups:
                     groups[group_name] = parser.add_argument_group(group_name)
-                groups[group_name].add_argument(argument_name, **argument_copy)
+                groups[group_name].add_argument(*argument_names, **argument_copy)
             else:
-                parser.add_argument(argument_name, **argument_copy)
+                parser.add_argument(*argument_names, **argument_copy)
         parser.set_defaults(func=cls.execute)
 
     @staticmethod
