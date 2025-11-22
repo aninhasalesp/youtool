@@ -10,24 +10,52 @@ class VideoTranscription(Command):
 
     name = "video-transcription"
     arguments = [
-        {"name": "--ids", "type": str, "help": "Video IDs", "nargs": "*", "mutually_exclusive_group": "input_source"},
-        {"name": "--urls", "type": str, "help": "Video URLs", "nargs": "*", "mutually_exclusive_group": "input_source"},
+        {
+            "name": "--ids",
+            "short": "-i",
+            "type": str,
+            "help": "Video IDs",
+            "nargs": "*",
+            "mutually_exclusive_group": "input_source",
+        },
+        {
+            "name": "--urls",
+            "short": "-u",
+            "type": str,
+            "help": "Video URLs",
+            "nargs": "*",
+            "mutually_exclusive_group": "input_source",
+        },
         {
             "name": "--urls-file-path",
+            "short": "-f",
             "type": Path,
             "help": "Channels urls csv file path",
             "mutually_exclusive_group": "input_source",
         },
         {
             "name": "--ids-file-path",
+            "short": "-d",
             "type": Path,
             "help": "Channel IDs CSV file path",
             "mutually_exclusive_group": "input_source",
         },
-        {"name": "--output-dir", "type": Path, "help": "Output directory to save transcriptions", "required": True},
-        {"name": "--language-code", "type": str, "help": "Language code for transcription", "required": True},
-        {"name": "--url_column_name", "type": str, "help": "URL column name on CSV input files"},
-        {"name": "--id_column_name", "type": str, "help": "ID column name on CSV input files"},
+        {
+            "name": "--output-dir",
+            "short": "-o",
+            "type": Path,
+            "help": "Output directory to save transcriptions",
+            "required": True,
+        },
+        {
+            "name": "--language-code",
+            "short": "-g",
+            "type": str,
+            "help": "Language code for transcription",
+            "required": True,
+        },
+        {"name": "--url_column_name", "short": "-c", "type": str, "help": "URL column name on CSV input files"},
+        {"name": "--id_column_name", "short": "-a", "type": str, "help": "ID column name on CSV input files"},
     ]
 
     ID_COLUMN_NAME: str = "video_id"
