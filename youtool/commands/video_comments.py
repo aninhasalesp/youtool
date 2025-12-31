@@ -13,8 +13,14 @@ class VideoComments(Command):
 
     name = "video-comments"
     arguments = [
-        {"name": "--ids", "short": "-i", "type": str, "help": "Video ID", "required": True},
-        {"name": "--output-file-path", "short": "-o", "type": Path, "help": "Output CSV file path"},
+        {
+            "name": "video_references",
+            "type": str,
+            "nargs": "+",
+            "help": "List of video IDs or CSV file paths containing video IDs",  # pelo menos um
+        },
+        {"name": "--output", "short": "-o", "type": Path, "help": "Output CSV file path"},
+        {"name": "--id-column-name", "short": "-i", "type": str, "help": "ID column name in CSV input files"},
     ]
 
     COMMENT_COLUMNS: List[str] = ["comment_id", "author_display_name", "text_display", "like_count", "published_at"]
@@ -27,21 +33,36 @@ class VideoComments(Command):
         - a YouTube video ID (`--ids`).
 
         Args:
-            ids (str): The ID of the YouTube video.
-            output_file_path (Path): Path to the output CSV file where comments will be saved.
+            video_references (list[str]): List of YouTube video IDs or CSV file paths containing video IDs.
+            output (Path): Path to the output CSV file where comments will be saved.
             api_key (str): The API key to authenticate with the YouTube Data API.
 
         Returns:
-            A message indicating the result of the command. If output_file_path is specified,
+            A message indicating the result of the command. If output is specified,
             the message will include the path to the generated CSV file.
             Otherwise, it will return the result as a string.
         """
-        ids = kwargs.get("ids")
-        output_file_path = kwargs.get("output_file_path")
+        video_references: List[str] = kwargs.get("video_references", [])
+        output = kwargs.get("output")
         api_key = kwargs.get("api_key")
+        id_column_name: str = kwargs.get("id_column_name") or "video_id"
+
+        video_ids: List[str] = []
+
+        for ref in video_references:
+            if ref.startswith("http"):
+                vid_id = cls.video_id_from_url(ref)
+                if vid_id:
+                    video_ids.append(vid_id)
+            elif len(ref) == 11 and ref.isalnum():
+                video_ids.append(ref)
+            else:
+                video_ids += cls.data_from_csv(Path(ref), data_column_name=id_column_name)
 
         youtube = YouTube([api_key], disable_ipv6=True)
 
-        comments = list(youtube.video_comments(ids))
+        all_comments = []
+        for vid_id in video_ids:
+            all_comments.extend(youtube.video_comments(vid_id))
 
-        return cls.data_to_csv(data=comments, output_file_path=output_file_path)
+        return cls.data_to_csv(data=all_comments, output=output)

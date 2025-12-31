@@ -1,6 +1,6 @@
 import argparse
 import csv
-from datetime import datetime
+import os
 from io import StringIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -135,27 +135,74 @@ class Command:
         return data
 
     @classmethod
-    def data_to_csv(cls, data: List[Dict], output_file_path: Optional[str] = None) -> str:
+    def data_to_csv(cls, data: List[Dict], output: Optional[str] = None) -> str:
         """Converts a list of channel IDs into a CSV file.
 
         Parameters:
         channels_ids (List[str]): List of channel IDs to be written to the CSV.
-        output_file_path (str, optional): Path to the file where the CSV will be saved. If not provided, the CSV will be returned as a string.
+        output (str, optional): Path to the file where the CSV will be saved. If not provided, the CSV will be returned as a string.
         channel_id_column_name (str, optional): Name of the column in the CSV that will contain the channel IDs.
                                                 If not provided, the default value defined in ChannelId.CHANNEL_ID_COLUMN_NAME will be used.
 
         Returns:
         str: The path of the created CSV file or, if no path is provided, the contents of the CSV as a string.
         """
-        if output_file_path:
-            output_path = Path(output_file_path)
+        if output:
+            output_path = Path(output)
             if output_path.is_dir():
-                command_name = cls.name.replace("-", "_")
-                timestamp = datetime.now().strftime("%M%S%f")
-                output_file_path = output_path / f"{command_name}_{timestamp}.csv"
+                raise ValueError("output deve ser o caminho completo do arquivo CSV, não um diretório.")
 
-        with Path(output_file_path).open("w", newline="") if output_file_path else StringIO() as csv_file:
+            if output_path.suffix.lower() != ".csv":
+                raise ValueError("output deve apontar para um arquivo .csv")
+
+        with Path(output).open("w", newline="") if output else StringIO() as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=list(data[0].keys()) if data else [])
             writer.writeheader()
             writer.writerows(data)
-            return str(output_file_path) if output_file_path else csv_file.getvalue()
+            return str(output) if output else csv_file.getvalue()
+
+    @classmethod
+    def parse_references(cls, references: List[str]) -> Dict[str, List]:
+        """
+        Classifies a list of references into urls, usernames, video_ids and file_paths.
+        """
+        parsed = {
+            "urls": [],
+            "usernames": [],
+            "video_ids": [],
+            "file_paths": [],
+        }
+
+        for ref in references:
+            if cls.is_url(ref):
+                parsed["urls"].append(ref)
+
+            elif cls.is_username(ref):
+                parsed["usernames"].append(ref[1:])  # remove "@"
+
+            elif cls.is_file_path(ref):
+                parsed["file_paths"].append(Path(ref))
+
+            else:
+                parsed["video_ids"].append(ref)
+
+        if not any(parsed.values()):
+            raise ValueError("No valid references provided")
+
+        return parsed
+
+    @staticmethod
+    def is_url(value: str) -> bool:
+        return value.startswith(("http://", "https://"))
+
+    @staticmethod
+    def is_username(value: str) -> bool:
+        return value.startswith("@")
+
+    @staticmethod
+    def is_file_path(value: str) -> bool:
+        return os.path.exists(value)
+
+    @staticmethod
+    def is_video_id(value: str) -> bool:
+        return not value.startswith(("http://", "https://")) and not value.startswith("@") and not os.path.exists(value)

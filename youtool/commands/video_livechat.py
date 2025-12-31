@@ -8,13 +8,23 @@ from .base import Command
 
 
 class VideoLiveChat(Command):
-    """Get live chat comments from a video ID, generate CSV output (same schema for chat_message dicts)"""
+    """Get live chat messages from YouTube videos."""
 
     name = "video-livechat"
     arguments = [
-        {"name": "--ids", "short": "-i", "type": str, "help": "Video ID", "required": True},
-        {"name": "--output-file-path", "short": "-o", "type": Path, "help": "Output CSV file path"},
-        {"name": "--expand-emojis", "short": "-e", "action": "store_true", "help": "Expand emojis in chat messages"},
+        {
+            "name": "video_reference",
+            "type": str,
+            "nargs": "+",
+            "help": "YouTube video IDs or URLs",
+        },
+        {"name": "--output", "short": "-o", "type": Path, "help": "Output CSV file path"},
+        {
+            "name": "--expand-emojis",
+            "short": "-e",
+            "action": "store_true",
+            "help": "Expand emojis in chat messages",
+        },
     ]
 
     CHAT_COLUMNS: List[str] = [
@@ -50,29 +60,31 @@ class VideoLiveChat(Command):
 
     @classmethod
     def execute(cls: Self, **kwargs) -> str:
-        """
-        Execute the video-livechat command to fetch live chat messages from a YouTube video and save them to a CSV file.
+        video_references: List[str] = kwargs["video_reference"]
+        output: Path | None = kwargs.get("output")
+        expand_emojis: bool = kwargs.get("expand_emojis", False)
+        api_key: str = kwargs["api_key"]
 
-        - a YouTube video ID (`--ids`).
+        video_ids: List[str] = []
 
-        Args:
-            ids (str): The ID of the YouTube video.
-            output_file_path (Path): Path to the output CSV file where chat messages will be saved.
-            expand_emojis (bool): Whether to expand emojis in chat messages. Defaults to True.
-            api_key (str): The API key to authenticate with the YouTube Data API.
+        for ref in video_references:
+            if ref.startswith("http"):
+                vid = cls.video_id_from_url(ref)
+                if vid:
+                    video_ids.append(vid)
+            else:
+                video_ids.append(ref)
 
-        Returns:
-            A message indicating the result of the command. If output_file_path is specified,
-            the message will include the path to the generated CSV file.
-            Otherwise, it will return the result as a string.
-        """
-        ids = kwargs.get("ids")
-        output_file_path = kwargs.get("output_file_path")
-        expand_emojis = kwargs.get("expand_emojis", True)
-        api_key = kwargs.get("api_key")
+        if not video_ids:
+            raise Exception("At least one valid video ID or URL must be provided")
+
+        # remove duplicados preservando simplicidade
+        video_ids = list(dict.fromkeys(video_ids))
 
         youtube = YouTube([api_key], disable_ipv6=True)
 
-        chat_messages = list(youtube.video_livechat(ids, expand_emojis))
+        chat_messages = []
+        for video_id in video_ids:
+            chat_messages.extend(youtube.video_livechat(video_id, expand_emojis))
 
-        return cls.data_to_csv(data=chat_messages, output_file_path=output_file_path)
+        return cls.data_to_csv(data=chat_messages, output=output)

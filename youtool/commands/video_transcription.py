@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List, Self
 
 from youtool import YouTube
 
@@ -6,116 +7,81 @@ from .base import Command
 
 
 class VideoTranscription(Command):
-    """Download video transcriptions from YouTube videos based on IDs or URLs (or CSV filename with URLs/IDs inside), and save them to files."""
+    """Download video transcriptions from YouTube videos."""
 
     name = "video-transcription"
     arguments = [
         {
-            "name": "--ids",
-            "short": "-i",
+            "name": "video_reference",
             "type": str,
-            "help": "Video IDs",
-            "nargs": "*",
-            "mutually_exclusive_group": "input_source",
-        },
-        {
-            "name": "--urls",
-            "short": "-u",
-            "type": str,
-            "help": "Video URLs",
-            "nargs": "*",
-            "mutually_exclusive_group": "input_source",
-        },
-        {
-            "name": "--urls-file-path",
-            "short": "-f",
-            "type": Path,
-            "help": "Channels urls csv file path",
-            "mutually_exclusive_group": "input_source",
-        },
-        {
-            "name": "--ids-file-path",
-            "short": "-d",
-            "type": Path,
-            "help": "Channel IDs CSV file path",
-            "mutually_exclusive_group": "input_source",
+            "nargs": "+",
+            "help": "Video IDs, URLs, or CSV files containing them",
         },
         {
             "name": "--output-dir",
             "short": "-o",
             "type": Path,
-            "help": "Output directory to save transcriptions",
             "required": True,
+            "help": "Output directory to save transcriptions",
         },
         {
             "name": "--language-code",
             "short": "-g",
             "type": str,
-            "help": "Language code for transcription",
             "required": True,
+            "help": "Language code for transcription",
         },
-        {"name": "--url_column_name", "short": "-c", "type": str, "help": "URL column name on CSV input files"},
-        {"name": "--id_column_name", "short": "-a", "type": str, "help": "ID column name on CSV input files"},
+        {"name": "--url-column-name", "type": str, "help": "CSV column for video URLs"},
+        {"name": "--id-column-name", "type": str, "help": "CSV column for video IDs"},
     ]
 
-    ID_COLUMN_NAME: str = "video_id"
-    URL_COLUMN_NAME: str = "video_url"
+    ID_COLUMN_NAME = "video_id"
+    URL_COLUMN_NAME = "video_url"
 
     @classmethod
-    def execute(cls, **kwargs) -> str:
-        """Execute the video-transcription command to download transcriptions of videos from IDs or URLs and save them to a CSV file.
+    def execute(cls: Self, **kwargs) -> str:
+        video_references: List[str] = kwargs["video_reference"]
+        output_dir: Path = kwargs["output_dir"]
+        language_code: str = kwargs["language_code"]
+        api_key: str = kwargs["api_key"]
 
-            - a list of YouTube video IDs (`--ids`), or
-            - a list of YouTube video URLs (`--urls`), or
-            - a CSV file containing those URLs (`--urls-file-path`) or IDs (`--ids-file-path`).
+        url_column = kwargs.get("url_column_name") or cls.URL_COLUMN_NAME
+        id_column = kwargs.get("id_column_name") or cls.ID_COLUMN_NAME
 
-        Args:
-            ids (list[str], optional): List of YouTube video IDs.
-                                        Mutually exclusive with `urls` and `input_file_path`.
-            urls (list[str], optional): List of YouTube video URLs.
-                                        Mutually exclusive with `ids` and `input_file_path`.
-            urls_file_path (Path, optional): Path to a CSV file containing YouTube video URLs.
-            ids_file_path (Path, optional): Path to a CSV file containing YouTube video IDs.
-            output_dir (Path, optional): Path to the output CSV file where video information will be saved.
-            language_code (str): Language code for the transcription language.
-            api_key (str): The API key to authenticate with the YouTube Data API.
-            url_column_name (str, optional): Column name for URLs in the CSV input file. Defaults to "video_url".
-            id_column_name (str, optional): Column name for IDs in the CSV output file. Defaults to "video_id".
+        video_ids: List[str] = []
 
-        Returns:
-            str: A message indicating the result of the command. Reports success or failure for each video transcription download.
-        """
-        ids = kwargs.get("ids") or []
-        urls = kwargs.get("urls") or []
-        ids_file_path = kwargs.get("ids_file_path")
-        urls_file_path = kwargs.get("urls_file_path")
-        output_dir = kwargs.get("output_dir")
-        language_code = kwargs.get("language_code")
-        api_key = kwargs.get("api_key")
+        for ref in video_references:
+            if ref.startswith("http"):
+                vid = cls.video_id_from_url(ref)
+                if vid:
+                    video_ids.append(vid)
 
-        url_column_name = kwargs.get("url_column_name") or VideoTranscription.URL_COLUMN_NAME
-        id_column_name = kwargs.get("id_column_name") or VideoTranscription.ID_COLUMN_NAME
+            elif Path(ref).is_file():
+                video_ids += cls.data_from_csv(Path(ref), id_column)
+                urls = cls.data_from_csv(Path(ref), url_column)
+                for url in urls:
+                    vid = cls.video_id_from_url(url)
+                    if vid:
+                        video_ids.append(vid)
+
+            else:
+                video_ids.append(ref)
+
+        if not video_ids:
+            raise Exception("At least one valid video ID or URL must be provided")
+
+        # remove duplicados mantendo ordem
+        # video_ids = list(dict.fromkeys(video_ids))
+
+        video_ids = list(set([vid for vid in sum(video_ids, []) if vid]))
 
         youtube = YouTube([api_key], disable_ipv6=True)
+        youtube.videos_transcriptions(video_ids, language_code, output_dir)
 
-        if ids_file_path:
-            ids += cls.data_from_csv(ids_file_path, id_column_name)
-        if urls_file_path:
-            urls += cls.data_from_csv(urls_file_path, url_column_name)
+        saved = []
+        for vid in video_ids:
+            path = output_dir / f"{vid}.{language_code}.vtt"
+            if path.is_file():
+                saved.append(str(path))
 
-        if not ids and not urls:
-            raise Exception("Either 'ids' or 'urls' must be provided for the video-transcription command")
-
-        if urls:
-            ids += sum([cls.video_id_from_url(url) for url in urls], [])
-
-        # Remove duplicated
-        ids = list(set(ids))
-        youtube.videos_transcriptions(ids, language_code, output_dir)
-        output_dir_path = Path(output_dir)
-        saved_transcriptions = [
-            str(output_dir_path / f"{v_id}.{language_code}.vtt")
-            for v_id in ids
-            if (output_dir_path / f"{v_id}.{language_code}.vtt").is_file()
-        ]
-        return "\n".join(saved_transcriptions)
+        return "\n".join(saved)
